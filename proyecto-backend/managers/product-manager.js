@@ -1,31 +1,20 @@
-import fs from "fs";
+import { Router } from "express";
+import ProductManager from "../managers/product-manager.js";
+import { io } from "../app.js";
 
-export default class ProductManager {
-  constructor(path) {
-    this.path = path;
-  }
+const router = Router();
+const manager = new ProductManager("./data/products.json");
 
-  async getProducts() {
-    if (!fs.existsSync(this.path)) return [];
-    const data = await fs.promises.readFile(this.path, "utf-8");
-    return JSON.parse(data);
-  }
+router.post("/", async (req, res) => {
+  await manager.addProduct(req.body);
+  io.emit("updateProducts", await manager.getProducts());
+  res.send("Producto agregado");
+});
 
-  async saveProducts(products) {
-    await fs.promises.writeFile(this.path, JSON.stringify(products, null, 2));
-  }
+router.delete("/:pid", async (req, res) => {
+  await manager.deleteProduct(req.params.pid);
+  io.emit("updateProducts", await manager.getProducts());
+  res.send("Producto eliminado");
+});
 
-  async addProduct(product) {
-    const products = await this.getProducts();
-    product.id = products.length ? products[products.length - 1].id + 1 : 1;
-    products.push(product);
-    await this.saveProducts(products);
-  }
-
-  async deleteProduct(id) {
-    const products = await this.getProducts();
-    const filtered = products.filter(p => p.id != id);
-    await this.saveProducts(filtered);
-    return products.length !== filtered.length;
-  }
-}
+export default router;
