@@ -1,35 +1,38 @@
-import fs from "fs";
+import fs from "fs/promises";
 
 export default class CartManager {
   constructor(path) {
     this.path = path;
   }
 
-  leerArchivo() {
-    if (!fs.existsSync(this.path)) return [];
-    const data = fs.readFileSync(this.path, "utf-8");
-    return data ? JSON.parse(data) : [];
+  async leerArchivo() {
+    try {
+      const data = await fs.readFile(this.path, "utf-8");
+      return JSON.parse(data || "[]");
+    } catch {
+      return [];
+    }
   }
 
-  guardarArchivo(data) {
-    fs.writeFileSync(this.path, JSON.stringify(data, null, 2));
+  async guardarArchivo(data) {
+    await fs.writeFile(this.path, JSON.stringify(data, null, 2));
   }
 
-  createCart() {
-    const carritos = this.leerArchivo();
+  async createCart() {
+    const carritos = await this.leerArchivo();
     const nuevo = { id: Date.now().toString(), products: [] };
     carritos.push(nuevo);
-    this.guardarArchivo(carritos);
+    await this.guardarArchivo(carritos);
     return nuevo;
   }
 
-  getCartById(id) {
-    const carritos = this.leerArchivo();
+  async getCartById(id) {
+    const carritos = await this.leerArchivo();
     return carritos.find(c => c.id === id);
   }
 
-  addProductToCart(cid, pid) {
-    const carritos = this.leerArchivo();
+  async addProductToCart(cid, pid) {
+    const carritos = await this.leerArchivo();
     const index = carritos.findIndex(c => c.id === cid);
     if (index === -1) return null;
 
@@ -42,7 +45,7 @@ export default class CartManager {
       cart.products.push({ product: pid, quantity: 1 });
     }
 
-    this.guardarArchivo(carritos);
+    await this.guardarArchivo(carritos);
     return cart;
   }
 }

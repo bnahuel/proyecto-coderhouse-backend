@@ -1,0 +1,11 @@
+[
+  {
+    "id": "1",
+    "title": "Camiseta",
+    "description": "Camiseta deportiva",
+    "price": 2500,
+    "code": "CAM-001",
+    "stock": 10,
+    "category": "ropa"
+  }
+]
